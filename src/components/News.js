@@ -1,58 +1,111 @@
 import React, { Component } from 'react'
 import NewsItem from './NewsItem'
+import Spinner from './Spinner'
+import PropTypes from 'prop-types'
+
 
 export class News extends Component {
-    articles=[
-        {
-            "source": {
-                "id": "espn-cric-info",
-                "name": "ESPN Cric Info"
-            },
-            "author": null,
-            "title": "PCB hands Umar Akmal three-year ban from all cricket | ESPNcricinfo.com",
-            "description": "Penalty after the batsman pleaded guilty to not reporting corrupt approaches | ESPNcricinfo.com",
-            "url": "http://www.espncricinfo.com/story/_/id/29103103/pcb-hands-umar-akmal-three-year-ban-all-cricket",
-            "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1099495_800x450.jpg",
-            "publishedAt": "2020-04-27T11:41:47Z",
-            "content": "Umar Akmal's troubled cricket career has hit its biggest roadblock yet, with the PCB handing him a ban from all representative cricket for three years after he pleaded guilty of failing to report det… [+1506 chars]"
-        },
-        {
-            "source": {
-                "id": "espn-cric-info",
-                "name": "ESPN Cric Info"
-            },
-            "author": null,
-            "title": "What we learned from watching the 1992 World Cup final in full again | ESPNcricinfo.com",
-            "description": "Wides, lbw calls, swing - plenty of things were different in white-ball cricket back then | ESPNcricinfo.com",
-            "url": "http://www.espncricinfo.com/story/_/id/28970907/learned-watching-1992-world-cup-final-full-again",
-            "urlToImage": "https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1219926_1296x729.jpg",
-            "publishedAt": "2020-03-30T15:26:05Z",
-            "content": "Last week, we at ESPNcricinfo did something we have been thinking of doing for eight years now: pretend-live ball-by-ball commentary for a classic cricket match. We knew the result, yes, but we tried… [+6823 chars]"
+
+    static defaultProps = {
+        country: 'in',
+        pageSize: 8
+      }
+
+    static PropTypes = {
+        country: PropTypes.string.isRequired,
+        pageSize: PropTypes.number.isRequired
+      }
+
+    constructor() {
+        super()
+        this.state = {
+            articles: [],
+            loading: false,
+            page: 1
         }
-    ]
-constructor(){
-    super()
-    this.state= {
-        articles:this.articles,
-        loading:false
     }
-}
+
+    async componentDidMount() {
+        console.log("cdm")
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=1&pagesize=${this.props.pageSize}`
+        this.setState({loading:true})
+        let data = await fetch(url)
+        let parsedData = await data.json()
+        console.log(parsedData)
+        this.setState({ 
+            articles: parsedData.articles,
+            totalResults:parsedData.totalResults,
+            loading:false
+         })
+    }
+
+    // }
+    // componentDidMount() {
+    //     let url= `http://cors-anywhere.herokuapp.com/https://newsapi.org/v2/top-headlines?${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099`
+    //     axios.get(url)
+    //     .then(result=>{
+
+    //         console.log(result.data)
+    //         this.setState=({articles:result.data.message.body.articles})
+    //         console.log(this.articles)
+    //     })
+    //     .catch(err=>console.log("error"))
+    // }
+
+    handleNextClick = async () => {
+        console.warn("Went on next page")
+        if(!(this.state.page + 1 > Math.ceil(this.state.totalResults/this.props.pageSize)))
+        {
+            let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page + 1}&pagesize=${this.props.pageSize}`
+            this.setState({loading:true})
+            let data = await fetch(url)
+            let parsedData = await data.json()
+            console.log(parsedData)
+            this.setState({
+                page: this.state.page + 1,
+                articles: parsedData.articles,
+                loading:false
+            })
+        }
+    }
+    handlePrevClick = async () => {
+        console.warn("Previous")
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page - 1}&pagesize=${this.props.pageSize}`
+        this.setState({loading:true})
+        let data = await fetch(url)
+        let parsedData = await data.json()
+        console.log(parsedData)
+
+        this.setState({
+            page: this.state.page - 1,
+            articles: parsedData.articles,
+            loading:false
+        })
+    }
+
+
     render() {
+        console.log("render")
+        
         return (
             <div className='container my-3'>
-                <h2>Top Headlines</h2>
+                <h1 className='text-center'>Top Headlines</h1>
                 <div className="row">
-                    <div className='col-md-4'>
-                        <NewsItem title="Title-1" description="this is the description for first news" imageUrl="https://a4.espncdn.com/combiner/i?img=%2Fi%2Fcricket%2Fcricinfo%2F1099495_800x450.jpg" />
-                    </div>
-             
-                <div className='col-md-4'>
-                    <NewsItem title="Title-1" description="this is the description for first news" />
-                </div>
+                    {this.state.loading && <Spinner/>}
+                    {!this.state.loading && this.state.articles.map((elements) => {
 
-                <div className='col-md-4'>
-                    <NewsItem title="Title-1" description="this is the description for first news" />
-                </div>
+                        return <div className='col-md-4' key={elements.url}>
+                            <NewsItem title={elements.title ? elements.title.slice(0, 45) : " "} description={elements.description ? elements.description.slice(0, 88) : " "} imageUrl={elements.urlToImage ? elements.urlToImage : " "} newsUrl={elements.newsUrl ? elements.url : " "} />
+                        </div>
+
+                    })}
+                    <div className="container d-flex justify-content-between">
+                        <button disabled={this.state.page <= 1} type="button" className="btn btn-dark" onClick={this.handlePrevClick}>&#8592; Previous</button>
+                        <button disabled={this.state.page + 1 > Math.ceil(this.state.totalResults/this.props.pageSize)} type="button" className="btn btn-dark" onClick={this.handleNextClick}> Next &#8594;</button>
+
+                    </div>
+
+
                 </div>
             </div>
 
