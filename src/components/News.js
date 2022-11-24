@@ -1,8 +1,20 @@
 import React, { Component } from 'react'
 import NewsItem from './NewsItem'
 import Spinner from './Spinner'
+import PropTypes from 'prop-types'
+
 
 export class News extends Component {
+
+    static defaultProps = {
+        country: 'in',
+        pageSize: 8
+      }
+
+    static PropTypes = {
+        country: PropTypes.string.isRequired,
+        pageSize: PropTypes.number.isRequired
+      }
 
     constructor() {
         super()
@@ -15,7 +27,7 @@ export class News extends Component {
 
     async componentDidMount() {
         console.log("cdm")
-        let url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=280b8acbf03041119db6b99f6a058099&page=1&pagesize=${this.props.pageSize}`
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=1&pagesize=${this.props.pageSize}`
         this.setState({loading:true})
         let data = await fetch(url)
         let parsedData = await data.json()
@@ -29,7 +41,7 @@ export class News extends Component {
 
     // }
     // componentDidMount() {
-    //     let url= `http://cors-anywhere.herokuapp.com/https://newsapi.org/v2/top-headlines?country=in&apiKey=280b8acbf03041119db6b99f6a058099`
+    //     let url= `http://cors-anywhere.herokuapp.com/https://newsapi.org/v2/top-headlines?${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099`
     //     axios.get(url)
     //     .then(result=>{
 
@@ -44,7 +56,7 @@ export class News extends Component {
         console.warn("Went on next page")
         if(!(this.state.page + 1 > Math.ceil(this.state.totalResults/this.props.pageSize)))
         {
-            let url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page + 1}&pagesize=${this.props.pageSize}`
+            let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page + 1}&pagesize=${this.props.pageSize}`
             this.setState({loading:true})
             let data = await fetch(url)
             let parsedData = await data.json()
@@ -58,7 +70,7 @@ export class News extends Component {
     }
     handlePrevClick = async () => {
         console.warn("Previous")
-        let url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page - 1}&pagesize=${this.props.pageSize}`
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&apiKey=280b8acbf03041119db6b99f6a058099&page=${this.state.page - 1}&pagesize=${this.props.pageSize}`
         this.setState({loading:true})
         let data = await fetch(url)
         let parsedData = await data.json()
